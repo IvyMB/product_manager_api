@@ -4,18 +4,19 @@ Este é um projeto de API para gerenciamento eficiente de produtos, desenvolvido
 ## Funcionalidades Principais:
 ### Produtos:
 
-Cadastro de novos produtos com informações detalhadas.
-Atualização de dados de produtos existentes.
-Consulta de todos os produtos ou produtos específicos por ID.
-Exclusão de produtos.
+- Cadastro de novos produtos com informações detalhadas.
+- Atualização de dados de produtos existentes.
+- Consulta de todos os produtos ou produtos específicos por ID.
+- Exclusão de produtos.
 
 ### Categorias:
 
-Adição de novas categorias para organizar os produtos.
-Atualização de informações de categorias existentes.
-Consulta de todas as categorias ou categorias específicas por ID.
-Exclusão de categorias.
-Tecnologias Utilizadas:
+- Adição de novas categorias para organizar os produtos.
+- Atualização de informações de categorias existentes.
+- Consulta de todas as categorias ou categorias específicas por ID.
+- Exclusão de categorias.
+
+### Tecnologias Utilizadas:
 Flask: Framework web em Python, escolhido pela sua simplicidade e extensibilidade.
 MongoDB: Banco de dados NoSQL, proporcionando flexibilidade no esquema de dados.
 Flask-MongoEngine: Facilita a integração entre Flask e MongoDB.
