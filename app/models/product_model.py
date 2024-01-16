@@ -1,4 +1,4 @@
-from mongoengine import Document, StringField, FloatField, ReferenceField, ObjectIdField
+from mongoengine import Document, StringField, FloatField, ReferenceField
 from .category_model import Category
 
 
