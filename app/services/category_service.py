@@ -1,11 +1,15 @@
 from ..models import Category
 from ..dtos import CategoryDTO
+from app.exceptions.category_exceptions import CategoryNotFoundError
 
 
 class CategoryService:
 
     def get_by_id(self, category_id: str):
         category = Category.objects(id=category_id).first()
+        if not category:
+            raise CategoryNotFoundError
+
         return category
 
     def get_all(self):
@@ -33,5 +37,8 @@ class CategoryService:
 
     def category_delete(self, category_id: str) -> None:
         existing_category = self.get_by_id(category_id)
-        if existing_category:
-            existing_category.delete()
+        if not existing_category:
+            raise CategoryNotFoundError("Category does not exist.")
+
+        existing_category.delete()
+
