@@ -22,9 +22,10 @@ class ProductService:
             raise ProductAlreadyExistsError("Product already exists.")
 
         category = product_dto.category
-        category_exists = category_service.get_by_id(category)
-        if not category_exists:
-            raise CategoryNotFoundError("Category does not exist.")
+        try:
+            category_service.get_by_id(category)
+        except CategoryNotFoundError:
+            return CategoryNotFoundError
 
         new_product = Product(title=product_dto.title,
                               description=product_dto.description,
