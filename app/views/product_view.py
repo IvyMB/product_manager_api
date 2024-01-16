@@ -2,7 +2,6 @@ from flask import jsonify, request
 from flask.views import MethodView
 from ..schemas import ProductSchema
 from ..services import ProductService, CategoryService
-from flask import abort
 from ..dtos import ProductDTO
 from app.exceptions.category_exceptions import CategoryNotFoundError
 from app.exceptions import ProductAlreadyExistsError, ProductNotFoundError
