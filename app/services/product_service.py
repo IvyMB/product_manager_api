@@ -52,4 +52,4 @@ class ProductService:
         except ProductNotFoundError:
             return None
 
-        existing_product.category_delete()
+        existing_product.delete()
