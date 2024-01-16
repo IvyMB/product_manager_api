@@ -1,4 +1,4 @@
-from flask import jsonify, abort, request
+from flask import jsonify, request
 from flask.views import MethodView
 from ..services import CategoryService
 from ..schemas import CategorySchema
@@ -15,7 +15,7 @@ class CategoryView(MethodView):
         if category_id:
             category = self.category_service.get_by_id(category_id)
             if not category:
-                abort(404, description="Product not found")
+                return jsonify({'message': 'Category already exists'}), 404
 
             result = self.schema.dump(category)
             return jsonify(result), 200
@@ -47,7 +47,7 @@ class CategoryView(MethodView):
         category_dto = CategoryDTO(**category_data)
         updated_category = self.category_service.update(category_id, category_dto)
         if not updated_category:
-            return jsonify({'error': 'Product not found'}), 404
+            return jsonify({'errors': 'Product not found'}), 404
 
         result = self.schema.dump(updated_category).decode('utf8')
         return jsonify(result), 200
