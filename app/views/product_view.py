@@ -20,13 +20,14 @@ class ProductView(MethodView):
             try:
                 product = self.product_service.get_by_id(product_id)
             except ProductNotFoundError:
-                return jsonify({'error': 'Product not found'}), 404
+                return jsonify({'errors': 'Product not found'}), 404
 
-            result = self.product_schema.dump(product).decode('utf8')
+            result = self.product_schema.dump(product)
+            print(result)
             return jsonify(result), 200
 
         all_products = self.product_service.get_all()
-        result = self.product_many_schema.dump(all_products).decode('utf8')
+        result = self.product_many_schema.dump(all_products)
         return jsonify(result), 200
 
     def post(self):
@@ -39,11 +40,11 @@ class ProductView(MethodView):
         try:
             new_product = self.product_service.create(product_dto, self.category_service)
         except CategoryNotFoundError:
-            return jsonify({'error': 'Category not found'}), 404
+            return jsonify({'errors': 'Category not found'}), 404
         except ProductAlreadyExistsError:
-            return jsonify({'error': 'Product already exists'}), 400
+            return jsonify({'errors': 'Product already exists'}), 400
 
-        result = self.product_schema.dump(new_product).decode('utf8')
+        result = self.product_schema.dump(new_product)
         return jsonify(result), 201
 
     def put(self, product_id=None):
@@ -59,9 +60,9 @@ class ProductView(MethodView):
         try:
             updated_product = self.product_service.product_update(product_id, update_product_dto)
         except ProductNotFoundError:
-            return jsonify({'error': 'Product not found'}), 404
+            return jsonify({'errors': 'Product not found'}), 404
 
-        result = self.product_schema.dump(updated_product).decode('utf8')
+        result = self.product_schema.dump(updated_product)
         return jsonify(result), 200
 
     def delete(self, product_id=None):
@@ -71,5 +72,5 @@ class ProductView(MethodView):
         try:
             self.product_service.product_delete(product_id)
         except ProductNotFoundError:
-            return jsonify({'error': 'Product not found'}), 404
+            return jsonify({'errors': 'Product not found'}), 404
         return jsonify({'message': 'Product deleted successfully'}), 200
