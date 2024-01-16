@@ -34,4 +34,4 @@ class CategoryService:
     def category_delete(self, category_id: str) -> None:
         existing_category = self.get_by_id(category_id)
         if existing_category:
-            existing_category.category_delete()
+            existing_category.delete()
