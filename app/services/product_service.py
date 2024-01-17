@@ -41,7 +41,7 @@ class ProductService:
         except ProductNotFoundError:
             return None
 
-        existing_product.modify(title=product_dto.title,
+        existing_product.update(title=product_dto.title,
                                 description=product_dto.description,
                                 price=product_dto.price,
                                 owner_id=product_dto.owner_id)
