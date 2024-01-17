@@ -33,7 +33,7 @@ class CategoryService:
         except CategoryNotFoundError:
             return None
 
-        existing_category.modify(title=category_dto.title,
+        existing_category.update(title=category_dto.title,
                                  description=category_dto.description,
                                  owner_id=category_dto.owner_id)
         return existing_category
