@@ -9,7 +9,6 @@ class CategoryService:
         category = Category.objects(id=category_id).first()
         if not category:
             raise CategoryNotFoundError
-
         return category
 
     def get_all(self):
@@ -20,7 +19,6 @@ class CategoryService:
         category = Category.objects(owner_id=category_dto.owner_id, title=category_dto.title).first()
         if category:
             raise CategoryAlreadyExistsError
-
         new_category = Category(title=category_dto.title,
                                 description=category_dto.description,
                                 owner_id=category_dto.owner_id)
@@ -32,7 +30,6 @@ class CategoryService:
             existing_category = self.get_by_id(category_id)
         except CategoryNotFoundError:
             return None
-
         existing_category.update(title=category_dto.title,
                                  description=category_dto.description,
                                  owner_id=category_dto.owner_id)
