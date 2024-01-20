@@ -27,7 +27,7 @@ class UserView(MethodView):
         result = self.create_schema.dump(new_user)
         return jsonify(result), 201
 
-    def put(self, user_id=None):
+    def put(self, user_id: str = None):
         if user_id is None:
             return jsonify({'message': 'Product not found'}), 404
 
