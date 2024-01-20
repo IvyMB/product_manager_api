@@ -12,7 +12,7 @@ class CategoryView(MethodView):
         self.schema = CategorySchema()
         self.many_schema = CategorySchema(many=True)
 
-    def get(self, category_id=None):
+    def get(self, category_id: str=None):
         if category_id:
             try:
                 category = self.category_service.get_by_id(category_id)
