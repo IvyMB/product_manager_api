@@ -12,7 +12,7 @@ class CategoryView(MethodView):
         self.schema = CategorySchema()
         self.many_schema = CategorySchema(many=True)
 
-    def get(self, category_id: str=None):
+    def get(self, category_id: str = None):
         if category_id:
             try:
                 category = self.category_service.get_by_id(category_id)
@@ -56,7 +56,7 @@ class CategoryView(MethodView):
         result = self.schema.dump(updated_category)
         return jsonify(result), 200
 
-    def delete(self, category_id=None):
+    def delete(self,  category_id: str = None):
         if category_id is None:
             return jsonify({'message': 'Product not found'}), 400
         
