@@ -4,7 +4,6 @@ from app.exceptions.category_exceptions import CategoryNotFoundError, CategoryAl
 
 
 class CategoryService:
-
     def get_by_id(self, category_id: str):
         category = Category.objects(id=category_id).first()
         if not category:
