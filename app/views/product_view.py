@@ -14,7 +14,7 @@ class ProductView(MethodView):
         self.product_schema = ProductSchema()
         self.product_many_schema = ProductSchema(many=True)
 
-    def get(self, product_id=None):
+    def get(self, product_id: str = None):
         if product_id:
             try:
                 product = self.product_service.get_by_id(product_id)
@@ -46,7 +46,7 @@ class ProductView(MethodView):
         result = self.product_schema.dump(new_product)
         return jsonify(result), 201
 
-    def put(self, product_id=None):
+    def put(self, product_id: str = None):
         if product_id is None:
             return jsonify({'message': 'Product not found'}), 404
 
@@ -64,7 +64,7 @@ class ProductView(MethodView):
         result = self.product_schema.dump(updated_product)
         return jsonify(result), 200
 
-    def delete(self, product_id=None):
+    def delete(self, product_id: str = None):
         if product_id is None:
             return jsonify({'message': 'Product not found'}), 404
 
