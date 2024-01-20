@@ -41,7 +41,7 @@ class CategoryView(MethodView):
         result = self.schema.dump(new_category)
         return jsonify(result), 201
 
-    def put(self, category_id=None):
+    def put(self, category_id: str = None):
         category_data = request.json
         errors = self.schema.validate(category_data)
         if errors:
