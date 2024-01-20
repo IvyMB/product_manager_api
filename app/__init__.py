@@ -15,9 +15,10 @@ def create_app(config_name):
     print(app.config)
 
     # Registrar Blueprints
-    from .blueprints import product_blueprint, category_blueprint
+    from .blueprints import product_blueprint, category_blueprint, user_blueprint
 
     app.register_blueprint(product_blueprint)
     app.register_blueprint(category_blueprint)
+    app.register_blueprint(user_blueprint)
 
     return app
