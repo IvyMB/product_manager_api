@@ -8,13 +8,19 @@ class CategoryService:
     def get_by_id(self, category_id: str):
         category = Category.objects(id=category_id).first()
         if not category:
-            raise CategoryNotFoundError
+            return None
         return category
+
+    def get_category_by_title(self, category_title: str, owner_id: str):
+        category_exists = Category.objects(owner_id=owner_id, title=category_title.title).first()
+        if not category_exists:
+            return None
+        return category_exists
 
     def get_by_owner_id(self, category_id: str, owner_id: str):
         category = Category.objects(id=category_id, owner_id=owner_id).first()
         if not category:
-            raise CategoryNotFoundError
+            return None
         return category
 
     def get_all(self):
@@ -22,10 +28,6 @@ class CategoryService:
         return all_categories
 
     def create(self, category_dto: CategoryDTO):
-        category_exists = Category.objects(owner_id=category_dto.owner_id, title=category_dto.title).first()
-        if category_exists:
-            raise CategoryAlreadyExistsError
-
         new_category = Category(title=category_dto.title,
                                 description=category_dto.description,
                                 owner_id=category_dto.owner_id)
@@ -33,22 +35,19 @@ class CategoryService:
         return new_category
 
     def update(self, category_id: str, category_dto: CategoryDTO):
-        try:
-            existing_category = self.get_by_owner_id(category_id=category_id, owner_id=category_dto.owner_id)
-        except CategoryNotFoundError:
-            return None
+        existing_category = self.get_by_owner_id(category_id=category_id, owner_id=category_dto.owner_id)
+        if not existing_category:
+            raise CategoryNotFoundError
 
         existing_category.update(title=category_dto.title,
                                  description=category_dto.description,
                                  owner_id=category_dto.owner_id)
         return existing_category
 
-    def category_delete(self, category_id: str, owner_data: dict[str]) -> bool:
-        owner_id = owner_data['owner_id']
-        try:
-            existing_category = self.get_by_owner_id(category_id=category_id, owner_id=owner_id)
-        except CategoryNotFoundError:
-            return False
+    def delete_category(self, category_id: str, owner_id: str) -> bool:
+        existing_category = self.get_by_owner_id(category_id=category_id, owner_id=owner_id)
+        if not existing_category:
+            raise CategoryNotFoundError
 
         existing_category.delete()
         return True

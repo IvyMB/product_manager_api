@@ -1,6 +1,7 @@
 from flask import jsonify, request
 from flask.views import MethodView
 from ..services import UserService
+from ..usecases import UserUseCase
 from ..schemas import UserCreateSchema, UserUpdateSchema
 from ..dtos import UserDTO
 from ..exceptions import UserAlreadyExistsError, UserNotFoundError
@@ -10,6 +11,7 @@ from flask_jwt_extended import jwt_required
 class UserView(MethodView):
     def __init__(self):
         self.user_service = UserService()
+        self.user_usecase = UserUseCase(self.user_service)
         self.create_schema = UserCreateSchema()
         self.update_schema = UserUpdateSchema()
 
@@ -21,7 +23,7 @@ class UserView(MethodView):
 
         user_dto = UserDTO(**user_data)
         try:
-            new_user = self.user_service.create(user_dto)
+            new_user = self.user_usecase.create_user(user_dto)
         except UserAlreadyExistsError:
             return jsonify({'message': 'User already exists'}), 404
 
@@ -40,7 +42,7 @@ class UserView(MethodView):
 
         user_dto = UserDTO(**user_data)
         try:
-            updated_user = self.user_service.user_update(user_id, user_dto)
+            updated_user = self.user_usecase.update_user(user_id, user_dto)
         except UserNotFoundError:
             return jsonify({'message': 'Category not found'}), 404
 

@@ -1,5 +1,6 @@
 from flask import jsonify, request
 from flask.views import MethodView
+from ..usecases import CategoryUseCase
 from ..services import CategoryService
 from ..schemas import CategorySchema, DeleteCategorySchema
 from ..dtos import CategoryDTO
@@ -10,6 +11,7 @@ from flask_jwt_extended import jwt_required
 class CategoryView(MethodView):
     def __init__(self):
         self.category_service = CategoryService()
+        self.category_usecase = CategoryUseCase(self.category_service)
         self.category_schema = CategorySchema()
         self.delete_schema = DeleteCategorySchema()
         self.many_schema = CategorySchema(many=True)
@@ -17,14 +19,14 @@ class CategoryView(MethodView):
     def get(self, category_id=None):
         if category_id:
             try:
-                category = self.category_service.get_by_id(category_id)
+                category = self.category_usecase.get_category_by_id(category_id)
             except CategoryNotFoundError:
                 return jsonify({'message': 'Category not found'}), 404
 
             result = self.category_schema.dump(category)
             return jsonify(result), 200
 
-        all_categories = self.category_service.get_all()
+        all_categories = self.category_usecase.get_all_categories()
         result = self.many_schema.dump(all_categories)
         return jsonify(result), 200
 
@@ -37,7 +39,7 @@ class CategoryView(MethodView):
 
         category_dto = CategoryDTO(**category_data)
         try:
-            new_category = self.category_service.create(category_dto)
+            new_category = self.category_usecase.create_category(category_dto)
         except CategoryAlreadyExistsError:
             return jsonify({'message': 'Category already exists'}), 404
 
@@ -53,7 +55,7 @@ class CategoryView(MethodView):
 
         category_dto = CategoryDTO(**category_data)
         try:
-            updated_category = self.category_service.update(category_id, category_dto)
+            updated_category = self.category_usecase.update_category(category_id, category_dto)
         except CategoryNotFoundError:
             return jsonify({'message': 'Category not found'}), 404
 
@@ -70,7 +72,7 @@ class CategoryView(MethodView):
         if errors:
             return jsonify({'message': errors}), 400
 
-        result = self.category_service.category_delete(category_id, data)
+        result = self.category_usecase.delete_category(category_id, data)
         if not result:
             return jsonify({'message': 'Category not found'}), 404
 

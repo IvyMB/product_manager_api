@@ -1,6 +1,7 @@
 from flask import jsonify, request
 from flask.views import MethodView
 from ..services import UserService
+from ..usecases import UserUseCase
 from ..schemas import LoginSchema
 from ..dtos import LoginDTO
 from ..exceptions import WrongCredentialsError, UserNotFoundError
@@ -9,6 +10,7 @@ from ..exceptions import WrongCredentialsError, UserNotFoundError
 class LoginView(MethodView):
     def __init__(self):
         self.user_service = UserService()
+        self.user_usecase = UserUseCase(self.user_service)
         self.login_schema = LoginSchema()
 
     def post(self):
@@ -19,7 +21,7 @@ class LoginView(MethodView):
 
         login_dto = LoginDTO(**login_data)
         try:
-            result = self.user_service.authenticate_user(login_dto)
+            result = self.user_usecase.authenticate_user(login_dto)
         except UserNotFoundError:
             return jsonify({'message': "Doesn't exist an user with this email"}), 404
         except WrongCredentialsError:

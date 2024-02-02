@@ -1,6 +1,7 @@
 from flask import jsonify, request
 from flask.views import MethodView
 from ..schemas import ProductSchema, DeleteProductSchema
+from ..usecases import ProductUseCase
 from ..services import ProductService, CategoryService
 from ..dtos import ProductDTO
 import app.exceptions as app_exceptions
@@ -11,6 +12,7 @@ class ProductView(MethodView):
     def __init__(self):
         self.product_service = ProductService()
         self.category_service = CategoryService()
+        self.product_usecase = ProductUseCase(self.product_service, self.category_service)
         self.product_schema = ProductSchema()
         self.delete_product_schema = DeleteProductSchema()
         self.product_many_schema = ProductSchema(many=True)
@@ -18,7 +20,7 @@ class ProductView(MethodView):
     def get(self, product_id=None):
         if product_id:
             try:
-                product = self.product_service.get_by_id(product_id)
+                product = self.product_usecase.get_product_by_id(product_id)
             except app_exceptions.ProductNotFoundError:
                 return jsonify({'message': 'Product not found'}), 404
 
@@ -26,7 +28,7 @@ class ProductView(MethodView):
             print(result)
             return jsonify(result), 200
 
-        all_products = self.product_service.get_all()
+        all_products = self.product_usecase.get_all_products()
         result = self.product_many_schema.dump(all_products)
         return jsonify(result), 200
 
@@ -39,7 +41,7 @@ class ProductView(MethodView):
 
         product_dto = ProductDTO(**product_data)
         try:
-            new_product = self.product_service.create(product_dto, self.category_service)
+            new_product = self.product_usecase.create_product(product_dto)
         except app_exceptions.CategoryNotFoundError:
             return jsonify({'message': 'Category not found'}), 404
         except app_exceptions.ProductAlreadyExistsError:
@@ -60,7 +62,7 @@ class ProductView(MethodView):
 
         update_product_dto = ProductDTO(**product_data)
         try:
-            updated_product = self.product_service.product_update(product_id, update_product_dto)
+            updated_product = self.product_service.update_product(product_id, update_product_dto)
         except app_exceptions.ProductNotFoundError:
             return jsonify({'message': 'Product not found'}), 404
 
@@ -76,8 +78,9 @@ class ProductView(MethodView):
         if errors:
             return jsonify({'message': errors}), 400
 
-        result = self.product_service.product_delete(product_id, data)
-        if not result:
+        try:
+            result = self.product_service.delete_product(product_id, data)
+        except app_exceptions.ProductNotFoundError:
             return jsonify({'message': 'Product not found'}), 404
 
         return jsonify({'message': 'Product deleted successfully'}), 200

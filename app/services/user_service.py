@@ -1,9 +1,9 @@
+from flask_bcrypt import check_password_hash, generate_password_hash
+from datetime import timedelta
+from flask_jwt_extended import create_access_token
 from ..models import User
 from ..dtos import UserDTO, LoginDTO
 from app.exceptions import UserAlreadyExistsError, UserNotFoundError, WrongCredentialsError
-from flask_bcrypt import check_password_hash, generate_password_hash
-from datetime import datetime, timedelta
-from flask_jwt_extended import create_access_token
 
 
 class UserService:
@@ -30,24 +30,18 @@ class UserService:
         token = create_access_token(identity=str(user_id), expires_delta=timedelta(days=1))
         return token
 
-    def authenticate_user(self, login_dto: LoginDTO):
-        email_data = login_dto.email
-        password_data = login_dto.password
-        user = self.get_by_email(email_data)
+    def authenticate_user(self, email: str, password: str):
+        user = self.get_by_email(email)
         if not user:
             raise UserNotFoundError
 
-        if not self.verify_password(user.password, password_data):
+        if not self.verify_password(user.password, password):
             raise WrongCredentialsError
 
         token = self.generate_token(user.id)
         return {'user_id': str(user.id), 'username': str(user.username), 'token': token}
 
     def create(self, user_dto: UserDTO):
-        user_exists = User.objects(email=user_dto.email).first()
-        if user_exists:
-            raise UserAlreadyExistsError("User already exists.")
-
         hashed_password = self.create_hashed_password(user_dto.password)
         new_user = User(username=user_dto.username,
                         password=hashed_password,
@@ -57,7 +51,7 @@ class UserService:
         new_user.save()
         return new_user
 
-    def user_update(self, user_id: str, user_dto: UserDTO):
+    def update_user(self, user_id: str, user_dto: UserDTO):
         try:
             existing_user = self.get_by_id(user_id)
         except UserNotFoundError:

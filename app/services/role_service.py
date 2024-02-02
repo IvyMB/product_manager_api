@@ -16,10 +16,6 @@ class RoleService:
         return all_roles
 
     def create(self, role_dto: RoleDTO,):
-        role_exists = Role.objects(name=role_dto.name).first()
-        if role_exists:
-            raise RoleAlreadyExistsError
-
         new_role = Role(name=role_dto.name)
         new_role.save()
         return new_role
