@@ -4,6 +4,7 @@ from ..services import UserService
 from ..schemas import UserCreateSchema, UserUpdateSchema
 from ..dtos import UserDTO
 from ..exceptions import UserAlreadyExistsError, UserNotFoundError
+from flask_jwt_extended import jwt_required
 
 
 class UserView(MethodView):
@@ -27,20 +28,21 @@ class UserView(MethodView):
         result = self.create_schema.dump(new_user)
         return jsonify(result), 201
 
-    def put(self, user_id: str = None):
+    @jwt_required()
+    def put(self, user_id=None):
         if user_id is None:
             return jsonify({'message': 'Product not found'}), 404
 
         user_data = request.json
         errors = self.update_schema.validate(user_data)
         if errors:
-            return jsonify({'errors': errors}), 400
+            return jsonify({'message': errors}), 400
 
         user_dto = UserDTO(**user_data)
         try:
             updated_user = self.user_service.user_update(user_id, user_dto)
         except UserNotFoundError:
-            return jsonify({'errors': 'Category not found'}), 404
+            return jsonify({'message': 'Category not found'}), 404
 
         result = self.update_schema.dump(updated_user)
         return jsonify(result), 200

@@ -1,11 +1,9 @@
 from ..models import User
-from ..dtos import UserDTO
+from ..dtos import UserDTO, LoginDTO
 from app.exceptions import UserAlreadyExistsError, UserNotFoundError, WrongCredentialsError
-import logging
-import bcrypt
-from flask_bcrypt import check_password_hash
+from flask_bcrypt import check_password_hash, generate_password_hash
 from datetime import datetime, timedelta
-from jose import jwt
+from flask_jwt_extended import create_access_token
 
 
 class UserService:
@@ -22,37 +20,28 @@ class UserService:
         return user
 
     def create_hashed_password(self, password: str):
-        salt = bcrypt.gensalt()
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
+        hashed_password = generate_password_hash(password.encode('utf-8'))
         return hashed_password
 
     def verify_password(self, hashed_password: str, password: str):
         return check_password_hash(hashed_password, password)
 
-    def generate_token(self, username: str, email: str, user_id: str):
-        secret_key = 'sua_chave_secreta_aqui'
-
-        payload = {
-            'user_id': str(user_id),
-            'username': str(username),
-            'email': str(email),
-            'exp': datetime.utcnow() + timedelta(days=1)
-        }
-
-        # Gerar o token
-        token = jwt.encode(payload, secret_key, algorithm='HS256')
+    def generate_token(self, user_id: str):
+        token = create_access_token(identity=str(user_id), expires_delta=timedelta(days=1))
         return token
 
-    def authenticate_user(self, email: str, password: str):
-        user = self.get_by_email(email)
+    def authenticate_user(self, login_dto: LoginDTO):
+        email_data = login_dto.email
+        password_data = login_dto.password
+        user = self.get_by_email(email_data)
         if not user:
             raise UserNotFoundError
 
-        if not self.verify_password(user.password, password):
+        if not self.verify_password(user.password, password_data):
             raise WrongCredentialsError
 
-        token = self.generate_token(user.username, user.email, user.id)
-        return {'user_id': str(user.id), 'token': token}
+        token = self.generate_token(user.id)
+        return {'user_id': str(user.id), 'username': str(user.username), 'token': token}
 
     def create(self, user_dto: UserDTO):
         user_exists = User.objects(email=user_dto.email).first()
@@ -63,6 +52,7 @@ class UserService:
         new_user = User(username=user_dto.username,
                         password=hashed_password,
                         email=user_dto.email,
+                        roles=user_dto.roles,
                         store_id=user_dto.store_id)
         new_user.save()
         return new_user

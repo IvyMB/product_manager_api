@@ -1,10 +1,10 @@
 from flask import jsonify, request
 from flask.views import MethodView
-from ..schemas import ProductSchema
+from ..schemas import ProductSchema, DeleteProductSchema
 from ..services import ProductService, CategoryService
 from ..dtos import ProductDTO
-from app.exceptions.category_exceptions import CategoryNotFoundError
-from app.exceptions import ProductAlreadyExistsError, ProductNotFoundError
+import app.exceptions as app_exceptions
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 
 class ProductView(MethodView):
@@ -12,14 +12,15 @@ class ProductView(MethodView):
         self.product_service = ProductService()
         self.category_service = CategoryService()
         self.product_schema = ProductSchema()
+        self.delete_product_schema = DeleteProductSchema()
         self.product_many_schema = ProductSchema(many=True)
 
-    def get(self, product_id: str = None):
+    def get(self, product_id=None):
         if product_id:
             try:
                 product = self.product_service.get_by_id(product_id)
-            except ProductNotFoundError:
-                return jsonify({'errors': 'Product not found'}), 404
+            except app_exceptions.ProductNotFoundError:
+                return jsonify({'message': 'Product not found'}), 404
 
             result = self.product_schema.dump(product)
             print(result)
@@ -29,47 +30,54 @@ class ProductView(MethodView):
         result = self.product_many_schema.dump(all_products)
         return jsonify(result), 200
 
+    @jwt_required()
     def post(self):
         product_data = request.json
         errors = self.product_schema.validate(product_data)
         if errors:
-            return jsonify({'errors': errors}), 400
+            return jsonify({'message': errors}), 400
 
         product_dto = ProductDTO(**product_data)
         try:
             new_product = self.product_service.create(product_dto, self.category_service)
-        except CategoryNotFoundError:
-            return jsonify({'errors': 'Category not found'}), 404
-        except ProductAlreadyExistsError:
-            return jsonify({'errors': 'Product already exists'}), 400
+        except app_exceptions.CategoryNotFoundError:
+            return jsonify({'message': 'Category not found'}), 404
+        except app_exceptions.ProductAlreadyExistsError:
+            return jsonify({'message': 'Product already exists'}), 400
 
         result = self.product_schema.dump(new_product)
         return jsonify(result), 201
 
-    def put(self, product_id: str = None):
+    @jwt_required()
+    def put(self, product_id=None):
         if product_id is None:
             return jsonify({'message': 'Product not found'}), 404
 
         product_data = request.json
         errors = self.product_schema.validate(product_data)
         if errors:
-            return jsonify({'errors': errors}), 400
+            return jsonify({'message': errors}), 400
 
         update_product_dto = ProductDTO(**product_data)
         try:
             updated_product = self.product_service.product_update(product_id, update_product_dto)
-        except ProductNotFoundError:
-            return jsonify({'errors': 'Product not found'}), 404
+        except app_exceptions.ProductNotFoundError:
+            return jsonify({'message': 'Product not found'}), 404
 
         result = self.product_schema.dump(updated_product)
         return jsonify(result), 200
 
-    def delete(self, product_id: str = None):
+    @jwt_required()
+    def delete(self, product_id=None):
         if product_id is None:
             return jsonify({'message': 'Product not found'}), 404
+        data = request.json
+        errors = self.delete_product_schema.validate(data)
+        if errors:
+            return jsonify({'message': errors}), 400
 
-        try:
-            self.product_service.product_delete(product_id)
-        except ProductNotFoundError:
-            return jsonify({'errors': 'Product not found'}), 404
+        result = self.product_service.product_delete(product_id, data)
+        if not result:
+            return jsonify({'message': 'Product not found'}), 404
+
         return jsonify({'message': 'Product deleted successfully'}), 200

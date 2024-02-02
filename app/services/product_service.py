@@ -3,6 +3,7 @@ from ..dtos import ProductDTO
 from .category_service import CategoryService
 from app.exceptions.category_exceptions import CategoryNotFoundError
 from app.exceptions import ProductAlreadyExistsError, ProductNotFoundError
+import logging
 
 
 class ProductService:
@@ -12,20 +13,29 @@ class ProductService:
             raise ProductNotFoundError
         return product
 
+    def check_product_exists_for_owner(self, title: str, owner_id: str):
+        product = Product.objects(owner_id=owner_id, title=title).first()
+        return product
+
+    def get_product_by_owner_id(self, owner_id: str,  product_id: str):
+        product = Product.objects(owner_id=owner_id, id=product_id).first()
+        if not product:
+            raise ProductNotFoundError
+        return product
+
     def get_all(self):
         all_products = Product.objects()
         return all_products
 
     def create(self, product_dto: ProductDTO, category_service: CategoryService):
-        product_exists = Product.objects(title=product_dto.title, owner_id=product_dto.owner_id).first()
+        product_exists = self.check_product_exists_for_owner(title=product_dto.title, owner_id=product_dto.owner_id)
         if product_exists:
-            raise ProductAlreadyExistsError("Product already exists.")
+            raise ProductAlreadyExistsError
 
-        category = product_dto.category
         try:
-            category_service.get_by_id(category)
+            category_service.get_by_id(category_id=product_dto.category)
         except CategoryNotFoundError:
-            return CategoryNotFoundError
+            raise CategoryNotFoundError
 
         new_product = Product(title=product_dto.title,
                               description=product_dto.description,
@@ -37,7 +47,7 @@ class ProductService:
 
     def product_update(self, product_id: str, product_dto: ProductDTO):
         try:
-            existing_product = self.get_by_id(product_id)
+            existing_product = self.get_product_by_owner_id(product_id, product_dto.owner_id)
         except ProductNotFoundError:
             return None
 
@@ -47,10 +57,12 @@ class ProductService:
                                 owner_id=product_dto.owner_id)
         return existing_product
 
-    def product_delete(self, product_id: str) -> None:
+    def product_delete(self, product_id: str, product_data: dict[str]) -> bool:
+        owner_id = product_data['owner_id']
         try:
-            existing_product = self.get_by_id(product_id)
+            product = self.get_product_by_owner_id(product_id=product_id, owner_id=owner_id)
         except ProductNotFoundError:
-            return None
+            return False
 
-        existing_product.delete()
+        product.delete()
+        return True

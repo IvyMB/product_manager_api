@@ -1,4 +1,5 @@
-from mongoengine import Document, StringField, EmailField, BooleanField
+from mongoengine import Document, StringField, EmailField, BooleanField, ListField, ReferenceField
+from .role_model import Role
 
 
 class User(Document):
@@ -6,6 +7,7 @@ class User(Document):
     email = EmailField(required=True)
     password = StringField(required=True)
     store_id = StringField(required=True)
+    roles = ListField(ReferenceField(Role), required=True)
     active = BooleanField(default=True)
 
     meta = {'collection': 'user'}
