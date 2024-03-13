@@ -1,6 +1,5 @@
 from flask import jsonify, request
 from flask.views import MethodView
-from ..services import UserService
 from ..usecases import UserUseCase
 from ..schemas import LoginSchema
 from ..dtos import LoginDTO
@@ -9,7 +8,6 @@ from ..exceptions import WrongCredentialsError, UserNotFoundError
 
 class LoginView(MethodView):
     def __init__(self):
-        self.user_service = UserService()
         self.user_usecase = UserUseCase(self.user_service)
         self.login_schema = LoginSchema()
 
